@@ -9,6 +9,7 @@ import tempfile
 import sys
 from lshash import LSHash
 import shutil
+import scipy
 
 app = Flask(__name__)
 redis = Redis(host='redis', port=6379)
@@ -28,7 +29,9 @@ NET = caffe.Classifier(
        image_dims = (256, 256)
    )
 
-HASH = LSHash(6, 256, storage_config={'redis': {'port': 6379, 'host': 'redis'}})
+DESC = {'prev': None}
+
+HASH = LSHash(8, 4096, num_hashtables=12, storage_config={'redis': {'port': 6379, 'host': 'redis'}})
 
 def warning(*objs):
     print("WARNING: ", *objs, file=sys.stderr)
@@ -48,12 +51,18 @@ def addAndQuery():
     input_image = caffe.io.load_image(temp_file.name)
     shutil.copy(temp_file.name, './images/out.png')
     prediction = NET.predict([input_image]).flatten()
-    descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()[0::16]
+    descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()
     #descriptor = descriptor[0::4]
     warning('descriptor', descriptor)
-    nearest = HASH.query(descriptor, distance_func='hamming');
+
+    nearest = HASH.query(descriptor, distance_func='true_euclidean');
     HASH.index(descriptor, extra_data=data['words']);
     warning('nearest', nearest)
+    if (DESC['prev'] is not None):
+      dist = scipy.spatial.distance.euclidean(DESC['prev'],descriptor)
+      warning('distance', dist);
+    DESC['prev'] = descriptor
+
     return jsonify({'hashes': nearest})
 
 if __name__ == "__main__":

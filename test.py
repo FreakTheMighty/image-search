@@ -6,7 +6,7 @@ import json
 url = 'http://192.168.59.105:5000/images'
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 data = {
-    'imageData': open('./image2.txt').read(),
+    'imageData': open('./image1.txt').read(),
     'words': ['hello', 'world']
 }
 
