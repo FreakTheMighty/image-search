@@ -8,4 +8,6 @@ web:
    - redis
 redis:
   image: redis
+  ports:
+    - "5001:6379"
 
