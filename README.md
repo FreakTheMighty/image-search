@@ -9,7 +9,7 @@
 ## Getting Started
 
 1. run `download-model.sh` to download the caffe image model used
-2. `docker-compose up`
+2. `docker-compose up` to launch the required docker processes
 
 
 ## Indexing + Querying
