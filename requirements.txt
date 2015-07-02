@@ -3,4 +3,3 @@ redis
 requests
 bitarray
 annoy
-lshash
