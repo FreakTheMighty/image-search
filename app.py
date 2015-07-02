@@ -72,9 +72,9 @@ def addAndQuery():
         descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()
         warning('descriptor', descriptor)
 
-        HASH.index(descriptor, extra_data={
-            'image': file_path.replace(app.config['UPLOAD_FOLDER'],'')
-        })
+        # HASH.index(descriptor, extra_data={
+        #     'image': file_path.replace(app.config['UPLOAD_FOLDER'],'')
+        # })
 
         nearest = HASH.query(descriptor, distance_func='true_euclidean',)
         results = []
