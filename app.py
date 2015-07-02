@@ -6,6 +6,7 @@ import shutil
 import scipy
 import os
 import numpy as np
+import json
 import caffe
 from redis import Redis
 from lshash import LSHash
@@ -76,7 +77,13 @@ def addAndQuery():
         })
 
         nearest = HASH.query(descriptor, distance_func='true_euclidean',)
-        return jsonify({'hashes': nearest})
+        results = []
+        for near in nearest:
+            extra_data = json.loads(near[0])[1]
+            distance = near[1]
+            results.append((distance, extra_data))
+
+        return jsonify({'nearest': results})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
