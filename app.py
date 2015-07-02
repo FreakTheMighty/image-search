@@ -9,10 +9,11 @@ import numpy as np
 import caffe
 from redis import Redis
 from lshash import LSHash
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+
 from werkzeug import secure_filename
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 
 redis = Redis(host='redis', port=6379)
 caffe.set_mode_cpu()
@@ -34,7 +35,7 @@ NET = caffe.Classifier(
 
 DESC = {'prev': None}
 
-HASH = LSHash(8, 256, num_hashtables=12, storage_config={'redis': {'port': 6379, 'host': 'redis'}})
+HASH = LSHash(8, 4096, num_hashtables=12, storage_config={'redis': {'port': 6379, 'host': 'redis'}})
 
 def warning(*objs):
     print("WARNING: ", *objs, file=sys.stderr)
@@ -49,6 +50,11 @@ def hello():
     redis.incr('hits')
     return 'Hello World!! I have been seen %s times.' % redis.get('hits')
 
+
+@app.route('/images/<path:path>')
+def send_js(path):
+    return send_from_directory('images', path)
+
 @app.route('/images', methods=['POST'])
 def addAndQuery():
     attached_file = request.files['image']
@@ -62,11 +68,14 @@ def addAndQuery():
 
         input_image = caffe.io.load_image(file_path)
         prediction = NET.predict([input_image]).flatten()
-        descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()[0::16].tolist()
+        descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()
         warning('descriptor', descriptor)
 
-        nearest = HASH.query(descriptor, distance_func='true_euclidean')
-        HASH.index(descriptor)
+        HASH.index(descriptor, extra_data={
+            'image': file_path.replace(app.config['UPLOAD_FOLDER'],'')
+        })
+
+        nearest = HASH.query(descriptor, distance_func='true_euclidean',)
         return jsonify({'hashes': nearest})
 
 if __name__ == "__main__":

@@ -3,3 +3,4 @@
 *.caffemodel
 image*.txt
 images/*
+test-images
