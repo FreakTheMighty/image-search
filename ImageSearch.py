@@ -32,7 +32,7 @@ NET = caffe.Classifier(
 
 DESC = {'prev': None}
 
-HASH = LSHash(8, 4096, num_hashtables=2, storage_config={'redis': {'port': 6379, 'host': 'redis'}})
+HASH = LSHash(4, 4096, num_hashtables=12, storage_config={'redis': {'port': 6379, 'host': 'redis'}})
 
 def warning(*objs):
     print("WARNING: ", *objs, file=sys.stderr)
@@ -51,4 +51,5 @@ def query_image(file_path):
     input_image = caffe.io.load_image(file_path)
     prediction = NET.predict([input_image])
     descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()
+    warning('query descriptor', descriptor)
     return HASH.query(descriptor, distance_func='true_euclidean')
