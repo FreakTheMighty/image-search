@@ -6,6 +6,20 @@ web:
    - .:/code
   links:
    - redis
+queue:
+  build: .
+  command: python index-worker.py
+  volumes:
+   - .:/code
+  links:
+   - redis
+dashboard:
+  build: .
+  command: rq-dashboard -u redis -P 6379
+  links:
+   - redis
+  ports:
+   - "5002:9181"
 redis:
   image: redis
   ports:
