@@ -52,4 +52,4 @@ def query_image(file_path):
     prediction = NET.predict([input_image])
     descriptor = NET.blobs[FEATURE_LAYER].data[0].flatten()
     warning('query descriptor', descriptor)
-    return HASH.query(descriptor, distance_func='true_euclidean')
+    return HASH.query(descriptor, num_results=5, distance_func='true_euclidean')
